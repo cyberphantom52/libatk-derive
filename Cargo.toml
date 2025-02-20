@@ -6,6 +6,7 @@ description = "Macro implementation for #[derive(CommandDescriptor)]"
 homepage = "https://github.com/cyberphantom52/libatk-rs/"
 repository = "https://github.com/cyberphantom52/libatk-rs/"
 readme = "README.md"
+license-file = "LICENSE"
 
 [lib]
 proc-macro = true
