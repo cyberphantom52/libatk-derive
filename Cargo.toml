@@ -1,6 +1,6 @@
 [package]
 name = "libatk-derive"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Macro implementation for #[derive(CommandDescriptor)]"
 homepage = "https://github.com/cyberphantom52/libatk-rs/"
@@ -14,4 +14,4 @@ proc-macro = true
 [dependencies]
 proc-macro2 = "1.0.93"
 quote = "1.0.38"
-syn = "2.0.98"
+syn = { version = "2.0.98", features = ["full"] }
