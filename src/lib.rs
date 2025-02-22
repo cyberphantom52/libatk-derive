@@ -10,7 +10,6 @@ use syn::{
 
 /// Struct for holding the parsed attribute arguments.
 struct Attributes {
-    base_offset: usize,
     report_id: u8,
     cmd_len: usize,
 }
@@ -19,7 +18,6 @@ impl Parse for Attributes {
     fn parse(input: ParseStream) -> Result<Self> {
         // Parse the comma-separated list of key = value pairs.
         let args = Punctuated::<MetaNameValue, Token![,]>::parse_terminated(input)?;
-        let mut base_offset_opt = None;
         let mut report_id_opt = None;
         let mut cmd_len_opt = None;
 
@@ -46,9 +44,6 @@ impl Parse for Attributes {
             };
 
             match key.as_str() {
-                "base_offset" => {
-                    base_offset_opt = Some(lit_int.base10_parse()?);
-                }
                 "report_id" => {
                     report_id_opt = Some(lit_int.base10_parse()?);
                 }
@@ -60,18 +55,12 @@ impl Parse for Attributes {
         }
 
         // Ensure all required fields were provided.
-        let base_offset = base_offset_opt
-            .ok_or_else(|| syn::Error::new(input.span(), "Missing `base_offset`"))?;
         let report_id =
             report_id_opt.ok_or_else(|| syn::Error::new(input.span(), "Missing `report_id`"))?;
         let cmd_len =
             cmd_len_opt.ok_or_else(|| syn::Error::new(input.span(), "Missing `cmd_len`"))?;
 
-        Ok(Attributes {
-            base_offset,
-            report_id,
-            cmd_len,
-        })
+        Ok(Attributes { report_id, cmd_len })
     }
 }
 
@@ -92,7 +81,6 @@ pub fn derive_my_trait(input: TokenStream) -> TokenStream {
     }
 
     let args = args_opt.expect("Missing #[command_descriptor(...)] attribute");
-    let base_offset = args.base_offset;
     let report_id = args.report_id;
     let cmd_len = args.cmd_len;
 
@@ -100,10 +88,6 @@ pub fn derive_my_trait(input: TokenStream) -> TokenStream {
 
     let gen = quote! {
         impl CommandDescriptor for #name {
-            fn base_offset() -> usize {
-                #base_offset
-            }
-
             fn report_id() -> u8 {
                 #report_id
             }
