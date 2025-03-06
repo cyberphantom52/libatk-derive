@@ -1,6 +1,6 @@
 [package]
 name = "libatk-derive"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 description = "Macro implementation for #[derive(CommandDescriptor)]"
 homepage = "https://github.com/cyberphantom52/libatk-rs/"
