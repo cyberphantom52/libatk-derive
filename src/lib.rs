@@ -1,104 +1,19 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
-    parse::{Parse, ParseStream},
-    parse_macro_input,
-    punctuated::Punctuated,
-    AngleBracketedGenericArguments, DeriveInput, Expr, ExprLit, FnArg, GenericArgument, Ident,
-    ImplItem, ItemImpl, Lit, MetaNameValue, Pat, PathArguments, Result, Token, Type, TypePath,
+    parse_macro_input, AngleBracketedGenericArguments, DeriveInput, FnArg, GenericArgument, Ident,
+    ImplItem, ItemImpl, Pat, PathArguments, Type, TypePath,
 };
 
-/// Struct for holding the parsed attribute arguments.
-struct Attributes {
-    report_id: u8,
-    cmd_len: usize,
-}
-
-impl Parse for Attributes {
-    fn parse(input: ParseStream) -> Result<Self> {
-        // Parse the comma-separated list of key = value pairs.
-        let args = Punctuated::<MetaNameValue, Token![,]>::parse_terminated(input)?;
-        let mut report_id_opt = None;
-        let mut cmd_len_opt = None;
-
-        for arg in args {
-            // Get the key as a string.
-            let key = arg
-                .path
-                .get_ident()
-                .ok_or_else(|| syn::Error::new_spanned(&arg.path, "Expected identifier"))?
-                .to_string();
-
-            // For each arg, we now extract the literal from the expression.
-            let lit_int = if let Expr::Lit(ExprLit {
-                lit: Lit::Int(ref i),
-                ..
-            }) = arg.value
-            {
-                i
-            } else {
-                return Err(syn::Error::new_spanned(
-                    &arg.value,
-                    "Expected integer literal",
-                ));
-            };
-
-            match key.as_str() {
-                "report_id" => {
-                    report_id_opt = Some(lit_int.base10_parse()?);
-                }
-                "cmd_len" => {
-                    cmd_len_opt = Some(lit_int.base10_parse()?);
-                }
-                _ => return Err(syn::Error::new_spanned(arg, "Unknown attribute key")),
-            }
-        }
-
-        // Ensure all required fields were provided.
-        let report_id =
-            report_id_opt.ok_or_else(|| syn::Error::new(input.span(), "Missing `report_id`"))?;
-        let cmd_len =
-            cmd_len_opt.ok_or_else(|| syn::Error::new(input.span(), "Missing `cmd_len`"))?;
-
-        Ok(Attributes { report_id, cmd_len })
-    }
-}
-
-#[proc_macro_derive(CommandDescriptor, attributes(command_descriptor))]
-pub fn derive_my_trait(input: TokenStream) -> TokenStream {
+#[proc_macro_derive(Command)]
+pub fn command_trait(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);
 
-    let mut args_opt = None;
-    for attr in ast.attrs.iter() {
-        if attr.path().is_ident("command_descriptor") {
-            // Instead of parse_meta, we use parse_args to parse the tokens within parentheses.
-            let args: Attributes = attr
-                .parse_args()
-                .expect("Failed to parse command_descriptor arguments");
-            args_opt = Some(args);
-            break;
-        }
-    }
-
-    let args = args_opt.expect("Missing #[command_descriptor(...)] attribute");
-    let report_id = args.report_id;
-    let cmd_len = args.cmd_len;
-
     let name = &ast.ident;
-
-    let gen = quote! {
-        impl CommandDescriptor for #name {
-            fn report_id() -> u8 {
-                #report_id
-            }
-
-            fn cmd_len() -> usize {
-                #cmd_len
-            }
-        }
-    };
-
-    TokenStream::from(gen)
+    quote! {
+        impl CommandDescriptor for #name {}
+    }
+    .into()
 }
 
 #[proc_macro_attribute]
