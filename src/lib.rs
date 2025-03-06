@@ -157,7 +157,7 @@ pub fn command_extension(_attr: TokenStream, item: TokenStream) -> TokenStream {
     }
 
     let mut out = quote! {
-        trait #extension_trait_ident {
+        pub trait #extension_trait_ident {
             #(#extension_trait_methods)*
         }
 
@@ -168,7 +168,7 @@ pub fn command_extension(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
     if builder_trait_methods.len() > 0 {
         out.extend(quote! {
-            trait #builder_trait_ident {
+            pub trait #builder_trait_ident {
                 #(#builder_trait_methods)*
             }
 
