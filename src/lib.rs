@@ -156,7 +156,7 @@ pub fn command_extension(_attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     }
 
-    let out = quote! {
+    let mut out = quote! {
         trait #extension_trait_ident {
             #(#extension_trait_methods)*
         }
@@ -164,15 +164,18 @@ pub fn command_extension(_attr: TokenStream, item: TokenStream) -> TokenStream {
         impl #extension_trait_ident for #impl_ty {
             #(#extension_impl_methods)*
         }
-
-        trait #builder_trait_ident {
-            #(#builder_trait_methods)*
-        }
-
-        impl #builder_trait_ident for CommandBuilder<#inner_ident> {
-            #(#builder_trait_impl)*
-        }
     };
 
+    if builder_trait_methods.len() > 0 {
+        out.extend(quote! {
+            trait #builder_trait_ident {
+                #(#builder_trait_methods)*
+            }
+
+            impl #builder_trait_ident for CommandBuilder<#inner_ident> {
+                #(#builder_trait_impl)*
+            }
+        });
+    }
     out.into()
 }
